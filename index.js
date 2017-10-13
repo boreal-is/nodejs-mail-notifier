@@ -4,7 +4,7 @@
 var util = require('util'),
     Imap = require('imap'),
     debug = require('debug'),
-    MailParser = require('mailparser').MailParser,
+	simpleParser = require('mailparser-iconv-full').simpleParser,
     EventEmitter = require('events').EventEmitter;
 
 var dbg = debug('mailnotifier');
@@ -83,12 +83,14 @@ Notifier.prototype.scan = function () {
             bodies: ''
         });
         fetch.on('message', function (msg) {
-            var mp = new MailParser();
-            mp.once('end', function (mail) {
-                self.emit('mail', mail);
-            });
             msg.once('body', function (stream, info) {
-                stream.pipe(mp);
+	            simpleParser(stream, function(err, mail) {
+		            if(err) {
+			            self.emit('error', err);
+			            return;
+		            }
+		            self.emit('mail', mail);
+	            });
             });
         });
         fetch.once('end', function () {
