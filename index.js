@@ -4,7 +4,7 @@
 var util = require('util'),
     Imap = require('imap'),
     debug = require('debug'),
-	simpleParser = require('mailparser-iconv-full').simpleParser,
+	simpleParser = require('mailparser').simpleParser,
     EventEmitter = require('events').EventEmitter;
 
 var dbg = debug('mailnotifier');
