@@ -84,7 +84,7 @@ Notifier.prototype.scan = function () {
         });
         fetch.on('message', function (msg) {
             msg.once('body', function (stream, info) {
-	            simpleParser(stream, function(err, mail) {
+	            simpleParser(stream, {keepCidLinks: true}, function(err, mail) {
 		            if(err) {
 			            self.emit('error', err);
 			            return;
