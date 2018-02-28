@@ -31,7 +31,18 @@ module.exports = function (opts, customDbg) {
 
 Notifier.prototype.start = function () {
     var self = this;
-    self.imap = new Imap(self.options);
+    
+	var q = async.queue(function(task, callback) {
+		self.dbg('process queue ' + task.name);
+		self.scan(callback);
+	}, 1);	
+
+	// assign a callback
+	q.drain = function() {
+		self.dbg('all items have been processed');
+	};
+	
+	self.imap = new Imap(self.options);
     self.imap.once('end', function () {
         self.dbg('imap end');
         self.emit('end');
@@ -41,7 +52,7 @@ Notifier.prototype.start = function () {
         self.emit('error', err);
     });
     self.imap.once('close', function (haserr) {
-        self.dbg('imap close : %s', haserr ? 'errored' : 'normal');
+        self.dbg('imap close : %s', haserr ? 'errored ' + haserr : 'normal');
     });
     self.imap.on('uidvalidity', function (uidvalidity) {
         self.dbg('new uidvalidity : %s', uidvalidity);
@@ -54,10 +65,16 @@ Notifier.prototype.start = function () {
                 self.emit('error', err);
                 return;
             }
-            self.scan();
+            
+			q.push({name: 'scan initial'}, function(err) {
+				self.dbg('finished processing scan initial');
+			});
+			
             self.imap.on('mail', function (id) {
                 self.dbg('mail event : %s', id);
-                self.scan();
+                q.push({name: 'scan', id : id}, function(err) {
+					self.dbg('finished processing scan '+id);
+				});
             });
         });
     });
@@ -65,16 +82,18 @@ Notifier.prototype.start = function () {
     return this;
 };
 
-Notifier.prototype.scan = function () {
+Notifier.prototype.scan = function (callback) {
     var self = this, search = self.options.search || ['UNSEEN'];
     self.dbg('scanning %s with filter `%s`.', self.options.box,  search);
     self.imap.search(search, function (err, seachResults) {
         if (err) {
             self.emit('error', err);
-            return;
+            callback();
+			return;
         }
         if (!seachResults || seachResults.length === 0) {
             self.dbg('no new mail in %s', self.options.box);
+            callback();
             return;
         }
         self.dbg('found %d new messages', seachResults.length);
@@ -95,11 +114,13 @@ Notifier.prototype.scan = function () {
         });
         fetch.once('end', function () {
             self.dbg('Done fetching all messages!');
+            callback();
         });
         fetch.once('error', function (err) {
             self.dbg('fetch error : ', err);
             self.emit('error', err);
-        });
+             callback();
+       });
     });
     return this;
 };
@@ -116,6 +137,4 @@ Notifier.prototype.stop = function () {
     return this;
 };
 
-Notifier.prototype.dbg = function (...args) {
-    dbg(...args);
-}
+Notifier.prototype.dbg = dbg;
