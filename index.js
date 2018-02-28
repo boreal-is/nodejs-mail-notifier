@@ -47,7 +47,7 @@ Notifier.prototype.start = function () {
         self.dbg('imap end');
         self.emit('end');
     });
-    self.imap.once('error', function (err) {
+    self.imap.on('error', function (err) {
         self.dbg('imap error : %s', err);
         self.emit('error', err);
     });
