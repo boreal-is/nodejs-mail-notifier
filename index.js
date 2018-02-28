@@ -4,6 +4,7 @@
 var util = require('util'),
     Imap = require('imap'),
     debug = require('debug'),
+	async = require('async'),
 	simpleParser = require('mailparser').simpleParser,
     EventEmitter = require('events').EventEmitter;
 
