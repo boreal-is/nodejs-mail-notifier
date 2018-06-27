@@ -19,7 +19,7 @@
     "async": "^2.5.0",
     "debug": "^2.2.0",
     "imap": "~0.8.9",
-    "mailparser": "^2.2.0"
+    "mailparser": "git+https://github.com/boreal-is/mailparser.git"
   },
   "main": "./index.js",
   "devDependencies": {}
