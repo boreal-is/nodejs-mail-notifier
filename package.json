@@ -6,7 +6,7 @@
     "mail",
     "notifier"
   ],
-  "version": "0.5.0",
+  "version": "0.5.1",
   "author": {
     "name": "borealis",
     "url": "https://github.com/boreal-is/nodejs-mail-notifier"
